@@ -1,195 +1,775 @@
-{
-  "openapi": "3.0.1",
-  "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
-  "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    }
-  }
-}
+openapi: 3.0.0
+info:
+  title: Straddle Payments API
+  version: 1.0.0
+  description: API for managing charges, payouts, and refunds
+
+servers:
+  - url: https://api.straddlepay.com/v1
+
+paths:
+  /charges:
+    post:
+      summary: Create a Charge
+      operationId: createCharge
+      tags:
+        - Charges
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRequest'
+      responses:
+        '201':
+          description: Charge created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Charge'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      summary: List Charges
+      operationId: listCharges
+      tags:
+        - Charges
+      parameters:
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/FromDateParam'
+        - $ref: '#/components/parameters/ToDateParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/AfterParam'
+      responses:
+        '200':
+          description: List of charges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargeList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /charges/{chargeId}:
+    get:
+      summary: Retrieve a Charge
+      operationId: getCharge
+      tags:
+        - Charges
+      parameters:
+        - $ref: '#/components/parameters/ChargeIdParam'
+      responses:
+        '200':
+          description: Charge details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Charge'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      summary: Update a Charge
+      operationId: updateCharge
+      tags:
+        - Charges
+      parameters:
+        - $ref: '#/components/parameters/ChargeIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeUpdateRequest'
+      responses:
+        '200':
+          description: Charge updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Charge'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /charges/{chargeId}/refund:
+    post:
+      summary: Refund a Charge
+      operationId: refundCharge
+      tags:
+        - Charges
+        - Refunds
+      parameters:
+        - $ref: '#/components/parameters/ChargeIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '201':
+          description: Refund created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /charges/{chargeId}/cancel:
+    post:
+      summary: Cancel a Charge
+      operationId: cancelCharge
+      tags:
+        - Charges
+      parameters:
+        - $ref: '#/components/parameters/ChargeIdParam'
+      responses:
+        '200':
+          description: Charge cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargeCancellation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /charges/{chargeId}/hold:
+    post:
+      summary: Hold a Charge
+      operationId: holdCharge
+      tags:
+        - Charges
+      parameters:
+        - $ref: '#/components/parameters/ChargeIdParam'
+      responses:
+        '200':
+          description: Charge held successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargeHold'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /payouts:
+    post:
+      summary: Create a Payout
+      operationId: createPayout
+      tags:
+        - Payouts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayoutRequest'
+      responses:
+        '201':
+          description: Payout created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payout'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      summary: List Payouts
+      operationId: listPayouts
+      tags:
+        - Payouts
+      parameters:
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/FromDateParam'
+        - $ref: '#/components/parameters/ToDateParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/AfterParam'
+      responses:
+        '200':
+          description: List of payouts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /payouts/{payoutId}:
+    get:
+      summary: Retrieve a Payout
+      operationId: getPayout
+      tags:
+        - Payouts
+      parameters:
+        - $ref: '#/components/parameters/PayoutIdParam'
+      responses:
+        '200':
+          description: Payout details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payout'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      summary: Update a Payout
+      operationId: updatePayout
+      tags:
+        - Payouts
+      parameters:
+        - $ref: '#/components/parameters/PayoutIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayoutUpdateRequest'
+      responses:
+        '200':
+          description: Payout updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payout'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /payouts/{payoutId}/cancel:
+    post:
+      summary: Cancel a Payout
+      operationId: cancelPayout
+      tags:
+        - Payouts
+      parameters:
+        - $ref: '#/components/parameters/PayoutIdParam'
+      responses:
+        '200':
+          description: Payout cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutCancellation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /payouts/{payoutId}/hold:
+    post:
+      summary: Hold a Payout
+      operationId: holdPayout
+      tags:
+        - Payouts
+      parameters:
+        - $ref: '#/components/parameters/PayoutIdParam'
+      responses:
+        '200':
+          description: Payout held successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayoutHold'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    ChargeIdParam:
+      name: chargeId
+      in: path
+      required: true
+      schema:
+        type: string
+    PayoutIdParam:
+      name: payoutId
+      in: path
+      required: true
+      schema:
+        type: string
+    StatusParam:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [pending, completed, failed]
+    FromDateParam:
+      name: from_date
+      in: query
+      schema:
+        type: string
+        format: date
+    ToDateParam:
+      name: to_date
+      in: query
+      schema:
+        type: string
+        format: date
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    AfterParam:
+      name: after
+      in: query
+      schema:
+        type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    ChargeRequest:
+      type: object
+      required:
+        - paykey
+        - amount
+        - currency
+        - payment_date
+        - consent_type
+      properties:
+        paykey:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+          enum: [USD]
+        payment_date:
+          type: string
+          format: date
+        consent_type:
+          type: string
+          enum: [internet, signed_agreement]
+        device:
+          $ref: '#/components/schemas/Device'
+        external_id:
+          type: string
+        meta_data:
+          type: object
+          additionalProperties: true
+        config:
+          $ref: '#/components/schemas/Config'
+
+    ChargeUpdateRequest:
+      type: object
+      required:
+        - paykey
+        - amount
+        - currency
+        - payment_date
+        - consent_type
+      properties:
+        paykey:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+          enum: [USD]
+        payment_date:
+          type: string
+          format: date
+        consent_type:
+          type: string
+          enum: [internet, signed_agreement]
+        device:
+          $ref: '#/components/schemas/Device'
+        external_id:
+          type: string
+        meta_data:
+          type: object
+          additionalProperties: true
+        config:
+          $ref: '#/components/schemas/Config'
+
+    Charge:
+      type: object
+      properties:
+        id:
+          type: string
+        paykey:
+          type: string
+        description:
+          type: string
+        payment_rail:
+          type: string
+        paykey_details:
+          $ref: '#/components/schemas/PaykeyDetails'
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+        payment_date:
+          type: string
+          format: date
+        consent_type:
+          type: string
+        device:
+          $ref: '#/components/schemas/Device'
+        external_id:
+          type: string
+        meta_data:
+          type: object
+          additionalProperties: true
+        config:
+          $ref: '#/components/schemas/Config'
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        effective_at:
+          type: string
+          format: date-time
+        processed_at:
+          type: string
+          format: date-time
+        status_at:
+          type: string
+          format: date-time
+
+    ChargeList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Charge'
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+
+    RefundRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: float
+        reason:
+          type: string
+
+    Refund:
+      type: object
+      properties:
+        id:
+          type: string
+        charge_id:
+          type: string
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+        reason:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ChargeCancellation:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+        status_at:
+          type: string
+          format: date-time
+
+    ChargeHold:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+        status_at:
+          type: string
+          format: date-time
+
+    PayoutRequest:
+      type: object
+      required:
+        - paykey
+        - amount
+        - currency
+        - payment_date
+        - consent_type
+      properties:
+        paykey:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+          format: float
+        currency:
+          type: string
+          enum: [USD]
+        payment_date:
+          type: string
+          format: date
+        consent_type:
+          type: string
+          enum: [internet, signed_agreement]
+        device:
+          $ref: '#/components/schemas/Device'
+        external_id:
+                  type: string
+                meta_data:
+                  type: object
+                  additionalProperties: true
+                config:
+                  $ref: '#/components/schemas/Config'
+                  
+            PayoutUpdateRequest:
+              type: object
+              required:
+                - paykey
+                - amount
+                - currency
+                - payment_date
+                - consent_type
+              properties:
+                paykey:
+                  type: string
+                description:
+                  type: string
+                amount:
+                  type: number
+                  format: float
+                currency:
+                  type: string
+                  enum: [USD]
+                payment_date:
+                  type: string
+                  format: date
+                consent_type:
+                  type: string
+                  enum: [internet, signed_agreement]
+                device:
+                  $ref: '#/components/schemas/Device'
+                external_id:
+                  type: string
+                meta_data:
+                  type: object
+                  additionalProperties: true
+                config:
+                  $ref: '#/components/schemas/Config'
+                  
+            Payout:
+              type: object
+              properties:
+                id:
+                  type: string
+                paykey:
+                  type: string
+                description:
+                  type: string
+                payment_rail:
+                  type: string
+                paykey_details:
+                  $ref: '#/components/schemas/PaykeyDetails'
+                amount:
+                  type: number
+                  format: float
+                currency:
+                  type: string
+                payment_date:
+                  type: string
+                  format: date
+                consent_type:
+                  type: string
+                device:
+                  $ref: '#/components/schemas/Device'
+                external_id:
+                  type: string
+                meta_data:
+                  type: object
+                  additionalProperties: true
+                config:
+                  $ref: '#/components/schemas/Config'
+                status:
+                  type: string
+                created_at:
+                  type: string
+                  format: date-time
+                updated_at:
+                  type: string
+                  format: date-time
+                effective_at:
+                  type: string
+                  format: date-time
+                processed_at:
+                  type: string
+                  format: date-time
+                status_at:
+                  type: string
+                  format: date-time
+                  
+            PayoutList:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Payout'
+                has_more:
+                  type: boolean
+                next_cursor:
+                  type: string
+                  
+            PayoutCancellation:
+              type: object
+              properties:
+                id:
+                  type: string
+                status:
+                  type: string
+                updated_at:
+                  type: string
+                  format: date-time
+                status_at:
+                  type: string
+                  format: date-time
+                  
+            PayoutHold:
+              type: object
+              properties:
+                id:
+                  type: string
+                status:
+                  type: string
+                updated_at:
+                  type: string
+                  format: date-time
+                status_at:
+                  type: string
+                  format: date-time
+                  
+            Device:
+              type: object
+              properties:
+                ip_address:
+                  type: string
+                  
+            Config:
+              type: object
+              properties:
+                balance_check:
+                  type: string
+                  enum: [required, enabled, off]
+                  
+            PaykeyDetails:
+              type: object
+              properties:
+                id:
+                  type: string
+                label:
+                  type: string
+                balance:
+                  type: string
+                customer_id:
+                  type: string
+                  
+            Error:
+              type: object
+              properties:
+                error:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                    message:
+                      type: string
+                    doc_url:
+                      type: string
+                      
+        security:
+          - ApiKeyAuth: []
+          
